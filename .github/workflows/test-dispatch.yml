@@ -1,0 +1,61 @@
+name: 手动触发测试工作流
+
+# 定义触发器
+on:
+  workflow_dispatch:
+    # 定义手动点击时需要填写的输入参数
+    inputs:
+      username:
+        description: '请输入你的名字'     # 显示在 UI 上的描述
+        required: true                  # 是否必填
+        default: '开发者'                # 默认值
+        type: string                    # 输入类型：字符串
+      
+      environment:
+        description: '选择部署环境'
+        required: true
+        default: 'staging'
+        type: choice                    # 输入类型：下拉菜单
+        options:
+          - dev
+          - staging
+          - production
+      
+      run_tests:
+        description: '是否运行自动化测试'
+        required: false
+        default: true
+        type: boolean                   # 输入类型：复选框 (True/False)
+
+jobs:
+  display-inputs:
+    name: 显示输入参数并执行任务
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出代码 (可选，如果你需要运行仓库里的脚本)
+      - name: 检出仓库代码
+        uses: actions/checkout@v4
+
+      # 2. 打印用户输入的参数
+      - name: 打印输入结果
+        run: |
+          echo "你好, ${{ inputs.username }}!"
+          echo "当前选中的环境是: ${{ inputs.environment }}"
+          echo "是否需要运行测试: ${{ inputs.run_tests }}"
+
+      # 3. 根据布尔值输入执行条件逻辑
+      - name: 模拟运行测试
+        if: ${{ inputs.run_tests == true }}
+        run: |
+          echo "正在执行测试脚本..."
+          echo "测试通过！"
+
+      # 4. 根据环境执行特定逻辑
+      - name: 部署提醒
+        run: |
+          if [ "${{ inputs.environment }}" == "production" ]; then
+            echo "警告：正在向生产环境执行操作！"
+          else
+            echo "正在向测试环境执行安全操作。"
+          fi
